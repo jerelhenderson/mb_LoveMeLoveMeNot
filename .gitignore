@@ -1,0 +1,19 @@
+# Build results
+
+[Dd]ebug/
+[Rr]elease/
+x64/
+build/
+[Bb]in/
+[Oo]bj/
+
+# Windows/Mac junk
+
+.DS_store
+$RECYCLE.BIN/
+Desktop.ini
+Thumbs.db
+
+# Other
+
+.vs/
