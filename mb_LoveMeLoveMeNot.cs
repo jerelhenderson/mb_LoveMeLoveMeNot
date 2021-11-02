@@ -68,41 +68,32 @@ namespace MusicBeePlugin
 
         public void SheLovesMe(object sender, EventArgs e)
         {
-            string[] selectedTracks = GatherSelectedTracks();
-
-            LoveQuestion(null, selectedTracks, "SheNeedsMyLove");
+            LoveQuestion(null, "SheNeedsMyLove");
         }
 
         public void SheLovesMeNot(object sender, EventArgs e)
         {
-            string[] selectedTracks = GatherSelectedTracks();
-
-            LoveQuestion(null, selectedTracks, "DontWantYourLove");
+            LoveQuestion(null, "DontWantYourLove");
         }
 
         public void DontPlayWithMyLove(object sender, EventArgs e)
         {
             string file = mbApiInterface.NowPlaying_GetFileProperty(FilePropertyType.Url);
-            LoveQuestion(file, null, mbApiInterface.NowPlaying_GetFileTag(MetaDataType.RatingLove));
+
+            LoveQuestion(file, mbApiInterface.NowPlaying_GetFileTag(MetaDataType.RatingLove));
         }
 
-        private string[] GatherSelectedTracks()
+        private void LoveQuestion(string file, string loveAnswer)
         {
-            string[] selected = new string[] { };
-            mbApiInterface.Library_QueryFilesEx("domain=SelectedFiles", out selected);
+            string[] selectedTracks = GatherSelectedTracks();
 
-            return selected;
-        }
-
-        private void LoveQuestion(string file, string[] files, string loveAnswer)
-        {
             if (file != null)
             {
                 if (loveAnswer != "L") CommitToTags(file, "L");
-            } else if (files.Length == 0 && loveAnswer == "DontWantYourLove") {
+            } else if (selectedTracks.Length == 0 && loveAnswer == "DontWantYourLove") {
                 CommitToTags(mbApiInterface.NowPlaying_GetFileProperty(FilePropertyType.Url), "");
             } else {
-                foreach (string track in files)
+                foreach (string track in selectedTracks)
                 {
                     if (mbApiInterface.Library_GetFileTag(track, MetaDataType.RatingLove) != "L" && loveAnswer == "SheNeedsMyLove") {
                         CommitToTags(track, "L");
@@ -114,6 +105,13 @@ namespace MusicBeePlugin
                 }
             }
             mbApiInterface.MB_RefreshPanels();
+        }
+        private string[] GatherSelectedTracks()
+        {
+            string[] selected = new string[] { };
+            mbApiInterface.Library_QueryFilesEx("domain=SelectedFiles", out selected);
+
+            return selected;
         }
 
         private void CommitToTags(string file, string loveOrNah)
