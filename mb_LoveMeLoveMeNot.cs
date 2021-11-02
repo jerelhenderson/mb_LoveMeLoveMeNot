@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace MusicBeePlugin
 {
@@ -18,8 +19,10 @@ namespace MusicBeePlugin
 
             EventHandler SheLovesMe_Event = new EventHandler(SheLovesMe);
             EventHandler SheLovesMeNot_Event = new EventHandler(SheLovesMeNot);
+            EventHandler DontPlayWithMyLove_Event = new EventHandler(DontPlayWithMyLove);
             mbApiInterface.MB_RegisterCommand("Plugin: Love Me", SheLovesMe_Event);
             mbApiInterface.MB_RegisterCommand("Plugin: Love Me Not", SheLovesMeNot_Event);
+            mbApiInterface.MB_RegisterCommand("Plugin: Love Me, Love Me Not", DontPlayWithMyLove_Event);
 
             about.PluginInfoVersion = PluginInfoVersion;
             about.Name = "Love Me, Love Me Not";
@@ -29,7 +32,7 @@ namespace MusicBeePlugin
             about.Type = PluginType.General;
             about.VersionMajor = 1;  // your plugin version
             about.VersionMinor = 0;
-            about.Revision = 1;
+            about.Revision = 2;
             about.MinInterfaceVersion = MinInterfaceVersion;
             about.MinApiRevision = MinApiRevision;
             about.ReceiveNotifications = (ReceiveNotificationFlags.PlayerEvents | ReceiveNotificationFlags.TagEvents);
@@ -67,14 +70,20 @@ namespace MusicBeePlugin
         {
             string[] selectedTracks = GatherSelectedTracks();
 
-            LoveQuestion(selectedTracks, "SheNeedsMyLove");
+            LoveQuestion(null, selectedTracks, "SheNeedsMyLove");
         }
 
         public void SheLovesMeNot(object sender, EventArgs e)
         {
             string[] selectedTracks = GatherSelectedTracks();
 
-            LoveQuestion(selectedTracks, "DontWantYourLove");
+            LoveQuestion(null, selectedTracks, "DontWantYourLove");
+        }
+
+        public void DontPlayWithMyLove(object sender, EventArgs e)
+        {
+            string file = mbApiInterface.NowPlaying_GetFileProperty(FilePropertyType.Url);
+            LoveQuestion(file, null, mbApiInterface.NowPlaying_GetFileTag(MetaDataType.RatingLove));
         }
 
         private string[] GatherSelectedTracks()
@@ -85,16 +94,23 @@ namespace MusicBeePlugin
             return selected;
         }
 
-        private void LoveQuestion(string[] files, string loveAnswer)
+        private void LoveQuestion(string file, string[] files, string loveAnswer)
         {
-            foreach (string track in files)
+            if (file != null)
             {
-                if (mbApiInterface.Library_GetFileTag(track, MetaDataType.RatingLove) != "L" && loveAnswer == "SheNeedsMyLove") {
-                    CommitToTags(track, "L");
-                } else if (mbApiInterface.Library_GetFileTag(track, MetaDataType.RatingLove) == "L" && loveAnswer == "DontWantYourLove") {
-                    CommitToTags(track, "");
-                } else {
-                    continue;
+                if (loveAnswer != "L") CommitToTags(file, "L");
+            } else if (files.Length == 0 && loveAnswer == "DontWantYourLove") {
+                CommitToTags(mbApiInterface.NowPlaying_GetFileProperty(FilePropertyType.Url), "");
+            } else {
+                foreach (string track in files)
+                {
+                    if (mbApiInterface.Library_GetFileTag(track, MetaDataType.RatingLove) != "L" && loveAnswer == "SheNeedsMyLove") {
+                        CommitToTags(track, "L");
+                    } else if (mbApiInterface.Library_GetFileTag(track, MetaDataType.RatingLove) == "L" && loveAnswer == "DontWantYourLove") {
+                        CommitToTags(track, "");
+                    } else {
+                        continue;
+                    }
                 }
             }
             mbApiInterface.MB_RefreshPanels();
