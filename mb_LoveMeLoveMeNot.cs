@@ -89,9 +89,9 @@ namespace MusicBeePlugin
 
             if (file != null)
             {
-                if (loveAnswer != "L") CommitToTags(file, "L");
+                if (loveAnswer != "L") CommitToTags(file, "Llfm");
             } else if (selectedTracks.Length == 0 && loveAnswer == "DontWantYourLove") {
-                CommitToTags(mbApiInterface.NowPlaying_GetFileProperty(FilePropertyType.Url), "");
+                CommitToTags(mbApiInterface.NowPlaying_GetFileProperty(FilePropertyType.Url), "lfm");
             } else {
                 foreach (string track in selectedTracks)
                 {
