@@ -19,20 +19,20 @@ namespace MusicBeePlugin
 
             EventHandler SheLovesMe_Event = new EventHandler(SheLovesMe);
             EventHandler SheLovesMeNot_Event = new EventHandler(SheLovesMeNot);
-            EventHandler DontPlayWithMyLove_Event = new EventHandler(DontPlayWithMyLove);
+            //EventHandler DontPlayWithMyLove_Event = new EventHandler(DontPlayWithMyLove);
             mbApiInterface.MB_RegisterCommand("Plugin: Love Me", SheLovesMe_Event);
             mbApiInterface.MB_RegisterCommand("Plugin: Love Me Not", SheLovesMeNot_Event);
-            mbApiInterface.MB_RegisterCommand("Plugin: Love Me, Love Me Not", DontPlayWithMyLove_Event);
+            //mbApiInterface.MB_RegisterCommand("Plugin: Love Me, Love Me Not", DontPlayWithMyLove_Event);
 
             about.PluginInfoVersion = PluginInfoVersion;
             about.Name = "Love Me, Love Me Not";
-            about.Description = "This plugin provides a substitute for MusicBee's built-in Last.fm Love rating hotkey";
+            about.Description = "This plugin provides a substitute for MusicBee's built-in Last.fm <Love> rating hotkey for the currently playing track";
             about.Author = "The Incredible Boom Boom";
             about.TargetApplication = "";   //  the name of a Plugin Storage device or panel header for a dockable panel
             about.Type = PluginType.General;
             about.VersionMajor = 1;  // your plugin version
-            about.VersionMinor = 0;
-            about.Revision = 2;
+            about.VersionMinor = 1;
+            about.Revision = 0;
             about.MinInterfaceVersion = MinInterfaceVersion;
             about.MinApiRevision = MinApiRevision;
             about.ReceiveNotifications = (ReceiveNotificationFlags.PlayerEvents | ReceiveNotificationFlags.TagEvents);
@@ -68,15 +68,25 @@ namespace MusicBeePlugin
 
         public void SheLovesMe(object sender, EventArgs e)
         {
-            LoveQuestion(null, "SheNeedsMyLove");
+            LoveQuestion("SheNeedsMyLove");
         }
 
         public void SheLovesMeNot(object sender, EventArgs e)
         {
-            LoveQuestion(null, "DontWantYourLove");
+            LoveQuestion("DontWantYourLove");
         }
 
-        public void DontPlayWithMyLove(object sender, EventArgs e)
+        private void LoveQuestion(string loveAnswer)
+        {
+            string file = mbApiInterface.NowPlaying_GetFileProperty(FilePropertyType.Url);
+
+            if (loveAnswer == "SheNeedsMyLove")
+                CommitToTags(file, "Llfm");
+            else
+                CommitToTags(file, "lfm");
+        }
+
+/*      public void DontPlayWithMyLove(object sender, EventArgs e)
         {
             string file = mbApiInterface.NowPlaying_GetFileProperty(FilePropertyType.Url);
 
@@ -85,20 +95,24 @@ namespace MusicBeePlugin
 
         private void LoveQuestion(string file, string loveAnswer)
         {
-            string[] selectedTracks = GatherSelectedTracks();
+            //string[] selectedTracks = GatherSelectedTracks();
 
             if (file != null)
             {
                 if (loveAnswer != "L") CommitToTags(file, "Llfm");
-            } else if (selectedTracks.Length == 0 && loveAnswer == "DontWantYourLove") {
+            } 
+            else if (selectedTracks.Length > 2 && loveAnswer == "DontWantYourLove") 
+            {
                 CommitToTags(mbApiInterface.NowPlaying_GetFileProperty(FilePropertyType.Url), "lfm");
-            } else {
+            } 
+            else 
+            {
                 foreach (string track in selectedTracks)
                 {
                     if (mbApiInterface.Library_GetFileTag(track, MetaDataType.RatingLove) != "L" && loveAnswer == "SheNeedsMyLove") {
                         CommitToTags(track, "L");
                     } else if (mbApiInterface.Library_GetFileTag(track, MetaDataType.RatingLove) == "L" && loveAnswer == "DontWantYourLove") {
-                        CommitToTags(track, "");
+                        CommitToTags(track, "lfm");
                     } else {
                         continue;
                     }
@@ -113,7 +127,7 @@ namespace MusicBeePlugin
 
             return selected;
         }
-
+ */
         private void CommitToTags(string file, string loveOrNah)
         {
             mbApiInterface.Library_SetFileTag(file, MetaDataType.RatingLove, loveOrNah);
