@@ -6,3 +6,6 @@ that may occur using the single built-in hotkey.
 ## Installation
 Installing MusicBee plugins is easy: just place the DLL in your `..\MusicBee\Plugins` folder.
 That's it!
+
+## Use
+Assign the Love/Unlove ability to separate hotkeys in the Preferences window
